@@ -1,0 +1,42 @@
+# Swift Package Manager
+.build/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# Xcode (if you ever need to open in Xcode)
+*.xcuserstate
+*.xcuserdatad/
+
+# Build artifacts
+build/
+DerivedData/
+
+# Release artifacts
+release/
+*.tar.gz
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Scripts (keep the scripts but ignore any generated files)
+scripts/*.lognager
+.build/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# Xcode (if you ever need to open in Xcode)
+*.xcuserstate
+*.xcuserdatad/
+
+# Build artifacts
+build/
+DerivedData/
+
+# IDE
+.vscode
+.idea/

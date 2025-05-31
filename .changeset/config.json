@@ -1,0 +1,12 @@
+{
+  "changelog": {
+    "format": "## {{date}}\n\n{{summary}}\n\n{{releases}}\n\n{{entries}}",
+    "repo": "lennartgastler/Things2Calendar"
+  },
+  "commit": true,
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}
