@@ -13,7 +13,7 @@ struct Things2CalendarCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "Things2Calendar",
         abstract: "A utility to sync Things time blocks to your calendar",
-        version: "0.0.1",
+        version: "1.0.0",
         subcommands: [Calendars.self, Sync.self]
     )
 }
