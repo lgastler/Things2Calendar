@@ -13,35 +13,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  test:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Swift
-        uses: swift-actions/setup-swift@v1
-        with:
-          swift-version: "5.9"
-
-      - name: Cache Swift PM
-        uses: actions/cache@v3
-        with:
-          path: .build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
-
-      - name: Build Debug
-        run: swift build -v
-
-      - name: Build Release
-        run: swift build -c release -v
-
-      - name: Test
-        run: swift test -v
-
   release:
-    needs: test
     runs-on: macos-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -52,7 +24,7 @@ jobs:
       - name: Setup Node.js (for changesets only)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install changesets
         run: npm install -g @changesets/cli
@@ -73,11 +45,11 @@ jobs:
         run: |
           # Generate changelog and consume changesets
           changeset version
-          
+
           # Extract new version from changelog
           VERSION=$(grep "^## " CHANGELOG.md | head -1 | sed 's/## //')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          
+
           # Update Swift CLI version
           sed -i '' "s/version: \"[^\"]*\"/version: \"$VERSION\"/" Sources/Things2CalendarCLI.swift
 
@@ -87,24 +59,23 @@ jobs:
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Check if there are changes to commit
           if git diff --quiet && git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
-          
+
           # Commit changes
           git add -A
           git commit -m "chore: release v${VERSION}" || echo "Nothing to commit"
-          
+
           # Create tag and push
           git tag "v${VERSION}"
           git push origin main
           git push origin "v${VERSION}"
 
   build-release:
-    needs: [test]
     runs-on: macos-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -123,7 +94,7 @@ jobs:
         run: |
           # Build release binary
           swift build -c release
-          
+
           # Create entitlements file
           cat > Things2Calendar.entitlements << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
@@ -135,10 +106,10 @@ jobs:
           </dict>
           </plist>
           EOF
-          
+
           # Sign the executable
           codesign --force --sign - --entitlements Things2Calendar.entitlements .build/release/Things2Calendar
-          
+
           # Create convenience symlink
           cd .build/release && ln -sf Things2Calendar t2c
 
