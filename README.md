@@ -1,18 +1,6 @@
 # Things2Calendar
 
-[![Release](https://img.shields.io/github/v/release/lennartgastler/Things2Calendar)](https://gith**Manual:**
-```bash
-# Generate version bump and changelog
-npx @changesets/cli version
-
-# Review changes, then commit and push
-git add -A && git commit -m "chore: release packages"
-git push origin main
-
-# Create tag to trigger release build
-git tag v$(grep "^## " CHANGELOG.md | head -1 | sed 's/## //')
-git push origin --tags
-```tgastler/Things2Calendar/releases)
+[![Release](https://img.shields.io/github/v/release/lgastler/Things2Calendar)](https://github.com/lgastler/Things2Calendar/releases)
 
 A Swift command-line utility to sync Things todos as time blocks to your calendar.
 
@@ -30,19 +18,29 @@ A Swift command-line utility to sync Things todos as time blocks to your calenda
 ### Homebrew (Recommended)
 
 ```bash
-brew install lennartgastler/tap/things2calendar
+brew install lgastler/tap/things2calendar
 ```
 
 ### Manual Installation
 
-Download the latest release from [GitHub Releases](https://github.com/lennartgastler/Things2Calendar/releases):
+1. Download the latest release from [GitHub Releases](https://github.com/lgastler/Things2Calendar/releases)
+2. Install the binary:
 
 ```bash
 # Download and install
-curl -L https://github.com/lennartgastler/Things2Calendar/releases/latest/download/Things2Calendar-*-macos.tar.gz | tar xz
+curl -L https://github.com/lgastler/Things2Calendar/releases/latest/download/Things2Calendar-*-macos.tar.gz | tar xz
 sudo mv Things2Calendar /usr/local/bin/
 sudo mv t2c /usr/local/bin/
 ```
+
+### Apple Shortcuts Setup
+
+To enable automatic syncing, you'll need to install the Things2Calendar shortcut:
+
+1. [Install the Things2Calendar Shortcut](https://www.icloud.com/shortcuts/d8433f7eda784d3ca6013a32e5a007ea)
+2. Open the Shortcuts app
+3. Configure the shortcut to run on your preferred schedule
+4. Grant necessary permissions when prompted
 
 ## Usage
 
@@ -75,13 +73,14 @@ Things2Calendar --version
 - macOS 14.0 or later
 - Calendar access permissions (granted on first run)
 - Things app with time blocks configured
+- Apple Shortcuts app (for automated syncing)
 
 ## Development
 
 ### Local Development
 
 ```bash
-git clone https://github.com/lennartgastler/Things2Calendar.git
+git clone https://github.com/lgastler/Things2Calendar.git
 cd Things2Calendar
 
 # Build debug version
@@ -101,13 +100,13 @@ sudo cp .build/release/Things2Calendar /usr/local/bin/
 sudo ln -sf /usr/local/bin/Things2Calendar /usr/local/bin/t2c
 ```
 
-### Release Process with Changesets
+### Release Management
 
-This project uses [Changesets](https://github.com/changesets/changesets) for structured version management and changelog generation.
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and changelog generation.
 
-#### For Each Change
+#### Making Changes
 
-When you make any changes:
+When contributing changes:
 
 ```bash
 # Add a changeset describing your change
@@ -118,18 +117,20 @@ git add -A && git commit -m "feat: your feature description"
 git push origin feature-branch
 ```
 
-#### Creating Releases
+#### Release Process
 
 **Automated (Recommended):**
-1. Merge your PR to `main` 
-2. Changesets will automatically create a "Version Packages" PR
+
+1. Merge your PR to `main`
+2. Changesets automatically creates a "Version Packages" PR
 3. Review and merge the Version Packages PR
 4. Release is automatically built and published! 🚀
 
-**Manual:**
+**Manual Release:**
+
 ```bash
 # Generate version bump and changelog
-npm run release:version
+npx @changesets/cli version
 
 # Review changes, then commit and push
 git add -A && git commit -m "chore: release packages"
@@ -140,22 +141,13 @@ git tag v$(grep "^## " CHANGELOG.md | head -1 | sed 's/## //')
 git push origin --tags
 ```
 
-#### What Happens Automatically
-
-- 📝 **Changesets** collect all changes since last release
-- � **Semantic versioning** based on changeset types
-- � **Changelog generation** with GitHub links
-- � **Version sync** across all files
-- � **Build and sign** release binary
-- 🚀 **Publish** to GitHub Releases
-
 #### Changeset Types
 
 - `major`: Breaking changes (1.0.0 → 2.0.0)
-- `minor`: New features (1.0.0 → 1.1.0)  
+- `minor`: New features (1.0.0 → 1.1.0)
 - `patch`: Bug fixes (1.0.0 → 1.0.1)
 
-See [`docs/CHANGESETS.md`](docs/CHANGESETS.md) for detailed workflow documentation.
+For detailed workflow documentation, see [`docs/CHANGESETS.md`](docs/CHANGESETS.md).
 
 ### Development Commands
 
