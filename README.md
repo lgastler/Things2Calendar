@@ -1,87 +1,171 @@
-# Things2Calendar
+# Calverge CLI
 
-[![Release](https://img.shields.io/github/v/release/lgastler/Things2Calendar)](https://github.com/lgastler/Things2Calendar/releases)
+[![Release](https://img.shields.io/github/v/release/lgastler/calverge-cli)](https://github.com/lgastler/calverge-cli/releases)
 
-A Swift command-line utility to sync Things todos as time blocks to your calendar.
+A command-line utility to sync events between macOS calendars with support for different sync modes.
 
 ## Features
 
-- 🔄 Sync Things todos as time blocks to any calendar
-- 📅 Automatic calendar event creation
-- 🏷️ Support for different durations provided by Things tags
-- 🔗 Direct linking from the calendar back to Things tasks
-- ⚡ Fast CLI with short `t2c` alias
-- 🛡️ Proper macOS calendar permissions handling
+- **Full Sync**: Copy complete event details (title, location, notes, alarms, recurrence)
+- **Busy-Only Sync**: Create generic "Busy" time blocks for privacy
+- **Safe Operation**: Only modifies target calendar, preserves past events
+- **Flexible Input**: Use JSON config files or command-line arguments
+- **Smart Cleanup**: Removes previously synced events before re-syncing
 
 ## Installation
 
 ### Homebrew (Recommended)
 
 ```bash
-brew install lgastler/tap/things2calendar
+brew install lgastler/tap/calverge
+```
+
+### Direct Download
+
+Download the latest release from [GitHub Releases](https://github.com/lgastler/calverge-cli/releases):
+
+```bash
+# Download and install the latest version
+curl -L https://github.com/lgastler/calverge-cli/releases/latest/download/calverge-*-macos.tar.gz | tar xz
+sudo mv calverge /usr/local/bin/
+```
+
+Or download a specific version:
+
+```bash
+# Replace VERSION with the desired version (e.g., 1.0.0)
+curl -L https://github.com/lgastler/calverge-cli/releases/download/vVERSION/calverge-VERSION-macos.tar.gz | tar xz
+sudo mv calverge /usr/local/bin/
 ```
 
 ### Manual Installation
 
-1. Download the latest release from [GitHub Releases](https://github.com/lgastler/Things2Calendar/releases)
-2. Install the binary:
+1. Clone the repository:
 
 ```bash
-# Download and install
-curl -L https://github.com/lgastler/Things2Calendar/releases/latest/download/Things2Calendar-*-macos.tar.gz | tar xz
-sudo mv Things2Calendar /usr/local/bin/
-sudo mv t2c /usr/local/bin/
+git clone https://github.com/lgastler/calverge-cli.git
+cd calverge-cli
 ```
 
-### Apple Shortcuts Setup
+2. Build the project:
 
-To enable automatic syncing, you'll need to install the Things2Calendar shortcut:
+```bash
+swift build -c release
+```
 
-1. [Install the Things2Calendar Shortcut](https://www.icloud.com/shortcuts/d8433f7eda784d3ca6013a32e5a007ea)
-2. Open the Shortcuts app
-3. Configure the shortcut to run on your preferred schedule
-4. Grant necessary permissions when prompted
+3. Install the binary:
+
+```bash
+sudo cp .build/release/calverge /usr/local/bin/
+```
 
 ## Usage
 
 ### List Available Calendars
 
+First, discover your calendar IDs:
+
 ```bash
-Things2Calendar calendars
-# or using the short alias:
-t2c calendars
+calverge calendars
 ```
 
-### Sync Things Time Blocks to Calendar
+This will show all calendars with their IDs, permissions, and sources.
+
+### Sync Using Command-Line Arguments
+
+**Full sync with basic details:**
 
 ```bash
-Things2Calendar sync --calendar-identifier "YOUR_CALENDAR_ID"
-# or using the short alias:
-t2c sync --calendar-identifier "YOUR_CALENDAR_ID"
+calverge sync --target "CAL-TARGET-123" --sources "CAL-SOURCE-1,CAL-SOURCE-2"
 ```
 
-### Get Help
+**Full sync with all details (notes, alarms, recurrence):**
 
 ```bash
-Things2Calendar --help
-t2c --help
-Things2Calendar --version
+calverge sync --target "CAL-TARGET-123" --sources "CAL-SOURCE-1" --include-details
+```
+
+**Privacy mode (busy-only):**
+
+```bash
+calverge sync --target "CAL-TARGET-123" --sources "CAL-SOURCE-1" --mode busy-only
+```
+
+### Sync Using JSON Configuration
+
+Create a JSON config file (see examples below) and run:
+
+```bash
+calverge sync --config work-sync.json
+```
+
+## Configuration Examples
+
+### Full Sync Configuration
+
+```json
+{
+  "name": "Work Calendar Sync",
+  "targetCalendarID": "CAL-TARGET-123",
+  "sourceCalendarIDs": ["CAL-WORK-456", "CAL-MEETINGS-789"],
+  "syncMode": "full",
+  "includeDetails": true
+}
+```
+
+### Privacy Sync Configuration
+
+```json
+{
+  "name": "Privacy Sync",
+  "targetCalendarID": "CAL-SHARED-123",
+  "sourceCalendarIDs": ["CAL-PERSONAL-456"],
+  "syncMode": "busy-only",
+  "includeDetails": false
+}
+```
+
+## Sync Modes
+
+- **`full`**: Copy all event details including title, location, and optionally notes/alarms/recurrence
+- **`busy-only`**: Create generic "Busy" events showing only time blocks (for privacy)
+
+## How It Works
+
+1. **Cleanup**: Removes previously synced events from the target calendar (future events only)
+2. **Copy**: Creates new events in the target calendar based on source calendars
+3. **Metadata**: Adds tracking information to synced events for future cleanup
+4. **Safety**: Only modifies the target calendar, never touches source calendars
+
+## Command Reference
+
+```bash
+# List all calendars with IDs
+calverge calendars
+
+# Sync with command-line arguments
+calverge sync --target <id> --sources <id1,id2> [--mode full|busy-only] [--include-details]
+
+# Sync with JSON config
+calverge sync --config <path-to-json>
+
+# Get help
+calverge --help
+calverge sync --help
 ```
 
 ## Requirements
 
 - macOS 14.0 or later
 - Calendar access permissions (granted on first run)
-- Things app with time blocks configured
-- Apple Shortcuts app (for automated syncing)
 
 ## Development
 
 ### Local Development
 
 ```bash
-git clone https://github.com/lgastler/Things2Calendar.git
-cd Things2Calendar
+git clone https://github.com/lgastler/calverge-cli.git
+cd calverge-cli
 
 # Build debug version
 swift build
@@ -93,11 +177,10 @@ swift build -c release
 swift test
 
 # Quick test
-.build/debug/Things2Calendar calendars
+.build/debug/calverge calendars
 
 # Install globally
-sudo cp .build/release/Things2Calendar /usr/local/bin/
-sudo ln -sf /usr/local/bin/Things2Calendar /usr/local/bin/t2c
+sudo cp .build/release/calverge /usr/local/bin/
 ```
 
 ### Release Management
@@ -148,10 +231,6 @@ git push origin --tags
 - `patch`: Bug fixes (1.0.0 → 1.0.1)
 
 For detailed workflow documentation, see [`docs/CHANGESETS.md`](docs/CHANGESETS.md).
-
-### Development Commands
-
-Run `make help` to see all available commands.
 
 ## Dependencies
 

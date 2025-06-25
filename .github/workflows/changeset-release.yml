@@ -58,7 +58,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # Update Swift CLI version
-          sed -i '' "s/version: \"[^\"]*\"/version: \"$VERSION\"/" Sources/Things2CalendarCLI.swift
+          sed -i '' "s/version: \"[^\"]*\"/version: \"$VERSION\"/" Sources/CalvergeCLI.swift
 
       - name: Create Release PR or Release
         id: tag
@@ -92,6 +92,9 @@ jobs:
       always() && 
       (startsWith(github.ref, 'refs/tags/v') || 
        (needs.release.result == 'success' && needs.release.outputs.tag_created == 'true'))
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      checksum: ${{ steps.checksum.outputs.CHECKSUM }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -119,42 +122,26 @@ jobs:
           # Build release binary
           swift build -c release
 
-          # Create entitlements file
-          cat > Things2Calendar.entitlements << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-          	<key>com.apple.security.personal-information.calendars</key>
-          	<true/>
-          </dict>
-          </plist>
-          EOF
-
-          # Sign the executable
-          codesign --force --sign - --entitlements Things2Calendar.entitlements .build/release/Things2Calendar
-
-          # Create convenience symlink
-          cd .build/release && ln -sf Things2Calendar t2c
+          # Sign the executable (ad-hoc signing)
+          codesign --force --sign - --entitlements calverge.entitlements .build/release/calverge
 
       - name: Create archive
         run: |
           mkdir -p release
-          cp .build/release/Things2Calendar release/
-          cp .build/release/t2c release/
-          tar -czf Things2Calendar-${{ steps.version.outputs.VERSION }}-macos.tar.gz -C release .
+          cp .build/release/calverge release/
+          tar -czf calverge-${{ steps.version.outputs.VERSION }}-macos.tar.gz -C release .
 
       - name: Calculate checksum
         id: checksum
         run: |
-          CHECKSUM=$(shasum -a 256 Things2Calendar-${{ steps.version.outputs.VERSION }}-macos.tar.gz | cut -d ' ' -f 1)
+          CHECKSUM=$(shasum -a 256 calverge-${{ steps.version.outputs.VERSION }}-macos.tar.gz | cut -d ' ' -f 1)
           echo "CHECKSUM=$CHECKSUM" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            Things2Calendar-${{ steps.version.outputs.VERSION }}-macos.tar.gz
+            calverge-${{ steps.version.outputs.VERSION }}-macos.tar.gz
           body: |
             ## Changes
 
@@ -164,14 +151,13 @@ jobs:
 
             ### Homebrew (Recommended)
             ```bash
-            brew install lennartgastler/tap/things2calendar
+            brew install lgastler/tap/calverge
             ```
 
             ### Manual Installation
             ```bash
-            curl -L https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.VERSION }}/Things2Calendar-${{ steps.version.outputs.VERSION }}-macos.tar.gz | tar xz
-            sudo mv Things2Calendar /usr/local/bin/
-            sudo mv t2c /usr/local/bin/
+            curl -L https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.VERSION }}/calverge-${{ steps.version.outputs.VERSION }}-macos.tar.gz | tar xz
+            sudo mv calverge /usr/local/bin/
             ```
 
             **SHA256 Checksum:** `${{ steps.checksum.outputs.CHECKSUM }}`
@@ -179,3 +165,22 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-homebrew:
+    runs-on: ubuntu-latest
+    needs: [build-release]
+    if: success() && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Update Homebrew formula
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: calverge
+          formula-path: Formula/calverge.rb
+          homebrew-tap: lgastler/homebrew-tap
+          download-url: https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-release.outputs.version }}/calverge-${{ needs.build-release.outputs.version }}-macos.tar.gz
+          commit-message: |
+            {{formulaName}} {{version}}
+
+            Created by https://github.com/mislav/bump-homebrew-formula-action
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

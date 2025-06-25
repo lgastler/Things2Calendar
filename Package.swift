@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "Things2Calendar",
+    name: "calverge-cli",
     platforms: [
-        .macOS(.v14) // EventKit requestFullAccessToEvents requires macOS 14+
+        .macOS(.v14)
     ],
     products: [
         .executable(
-            name: "Things2Calendar",
-            targets: ["Things2Calendar"]
+            name: "calverge",
+            targets: ["calverge"]
         ),
     ],
     dependencies: [
@@ -17,7 +17,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "Things2Calendar",
+            name: "calverge",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
